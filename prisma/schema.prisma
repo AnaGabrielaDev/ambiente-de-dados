@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum type_card {
+  POKEMON
+  TRAINER
+}
+
+enum category_tournament {
+  WORLD
+  INTERNATIONAL
+  NATIONAL
+  REGIONAL
+  OTHER
+}
+
+model Card {
+  id     String    @id
+  name   String
+  type   type_card
+  energy String?
+  price  Float
+
+  DeckCard DeckCard[]
+
+  @@map("cards")
+}
+
+model Player {
+  id           Int    @id
+  name         String
+  country      String
+  allTimeScore Int    @map("all_time_score")
+
+  decks            Deck[]
+  PlayerTournament PlayerTournament[]
+
+  @@map("players")
+}
+
+model Deck {
+  id       Int    @id
+  name     String
+  playerId Int    @map("player_id")
+
+  Player    Player     @relation(fields: [playerId], references: [id])
+  deckCards DeckCard[]
+
+  @@map("decks")
+}
+
+model DeckCard {
+  deckId Int    @map("deck_id")
+  cardId String @map("card_id")
+  count  Int
+
+  deck  Deck @relation(fields: [deckId], references: [id])
+  cards Card @relation(fields: [cardId], references: [id])
+
+  @@id([deckId, cardId])
+  @@map("deck_cards")
+}
+
+model PlayerTournament {
+  playerId     Int @map("player_id")
+  tournamentId Int @map("tournament_id")
+  score        Int
+
+  Player     Player     @relation(fields: [playerId], references: [id])
+  Tournament Tournament @relation(fields: [tournamentId], references: [id])
+
+  @@id([playerId, tournamentId])
+  @@map("players_tournaments")
+}
+
+model Tournament {
+  id         Int      @id
+  name       String
+  region     String
+  country    String
+  category   String
+  date       DateTime
+  rotationId Int?     @map("rotation_id")
+
+  PlayerTournament PlayerTournament[]
+  Rotation         Rotation?          @relation(fields: [rotationId], references: [id])
+
+  @@map("tournaments")
+}
+
+model Rotation {
+  id                        Int      @id @default(autoincrement())
+  name                      String
+  validRotationAtTournament String?  @map("valid_rotation_at_tournament")
+  initialDate               DateTime @map("initial_date")
+
+  Tournament Tournament[]
+
+  @@map("rotations")
+}
