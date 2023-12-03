@@ -1,0 +1,79 @@
+enum type_card {
+  POKEMON
+  TRAINER
+}
+
+model Card {
+  id     String    @id
+  name   String
+  type   type_card
+  energy String?
+
+  DeckCard DeckCard[]
+}
+
+model Player {
+  id           String @id
+  name         String
+  country      String
+  allTimeScore Int
+
+  decks            Deck[]
+  PlayerTournament PlayerTournament[]
+}
+
+model Deck {
+  id       String @id
+  name     String
+  playerId String
+
+  Player    Player     @relation(fields: [playerId], references: [id])
+  deckCards DeckCard[]
+}
+
+model DeckCard {
+  deckId String
+  cardId String
+  count  Int
+
+  deck  Deck @relation(fields: [deckId], references: [id])
+  cards Card @relation(fields: [cardId], references: [id])
+
+  @@id([deckId, cardId])
+}
+
+enum category_tournament {
+  WORLD
+  INTERNATIONAL
+  NATIONAL
+  REGIONAL
+}
+
+model PlayerTournament {
+  id           String @id
+  playerId     String
+  tournamentId String
+  score        Int
+
+  Player     Player     @relation(fields: [playerId], references: [id])
+  Tournament Tournament @relation(fields: [tournamentId], references: [id])
+}
+
+model Tournament {
+  id         String   @id
+  name       String
+  region     String
+  country    String
+  category   String
+  rotationId String
+  date       DateTime
+
+  PlayerTournament PlayerTournament[]
+}
+
+model Rotation {
+  id          String   @id
+  name        String
+  validCards  String
+  initialDate DateTime
+}
